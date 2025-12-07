@@ -3,6 +3,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+/*
+pthread_mutex_init()
+Dùng để khởi tạo mutex (mutual exclusion lock).
+
+Mutex = khóa loại trừ lẫn nhau
+→ giúp nhiều thread không truy cập đồng thời vào cùng một vùng dữ liệu.
+-----------------------------------------
+
+pthread_cond_init()
+Condition variable dùng để thread chờ (wait)
+ một điều kiện xảy ra, ví dụ:
+-chờ buffer có dữ liệu
+-chờ biến được cập nhật
+-chờ tài nguyên sẵn sàng
+-----------------------------------------
+
+*/
+
 static pthread_t _timer;
 
 struct timer_id_container_t {
@@ -10,6 +29,8 @@ struct timer_id_container_t {
 	struct timer_id_container_t * next;
 };
 
+// dung de quan ly nhieu CPU: CPU0,CPU1,CPU2
+// su dung singly linklist
 static struct timer_id_container_t * dev_list = NULL;
 
 static uint64_t _time;

@@ -63,8 +63,8 @@ struct vm_rg_struct {
 /*
  *  Memory area struct
  */
-struct vm_area_struct {
-   unsigned long vm_id;
+struct vm_area_struct {    // dai dien cho tung vung cap phat, heap, stack, code....
+   unsigned long vm_id; // vi du 0 cho heap , 1 cho stack ,...
    addr_t vm_start;
    addr_t vm_end;
 
@@ -73,9 +73,9 @@ struct vm_area_struct {
  * Derived field
  * unsigned long vm_limit = vm_end - vm_start
  */
-   struct mm_struct *vm_mm;
-   struct vm_rg_struct *vm_freerg_list;
-   struct vm_area_struct *vm_next;
+   struct mm_struct *vm_mm;               
+   struct vm_rg_struct *vm_freerg_list;   // danh sach cac free region ben trong [vmstart,sbrk]
+   struct vm_area_struct *vm_next;  // danh sach cac vm_area_struct khac
 };
 
 /* 
@@ -114,7 +114,7 @@ struct framephy_struct {
 
 struct memphy_struct {
    /* Basic field of data and size */
-   BYTE *storage;
+   BYTE *storage;  // day la bo nho real cap phat dong
    int maxsz;
    
    /* Sequential device fields */ 
@@ -126,4 +126,4 @@ struct memphy_struct {
    struct framephy_struct *used_fp_list;
 };
 
-#endif
+#endif OSMM_H

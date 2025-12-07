@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "mm64.h"
 
 /*
  * MEMPHY_mv_csr - move MEMPHY cursor
@@ -122,16 +123,17 @@ int MEMPHY_write(struct memphy_struct *mp, addr_t addr, BYTE data)
  * MEMPHY_format-format MEMPHY device
  * @mp: memphy struct
  */
+// tinh so luong frame va gan frame free
 int MEMPHY_format(struct memphy_struct *mp, int pagesz)
 {
    /* This setting come with fixed constant PAGESZ */
    int numfp = mp->maxsz / pagesz;
+
    struct framephy_struct *newfst, *fst;
    int iter = 0;
 
    if (numfp <= 0)
       return -1;
-
    /* Init head of free framephy list */
    fst = malloc(sizeof(struct framephy_struct));
    fst->fpn = iter;
@@ -218,13 +220,12 @@ int init_memphy(struct memphy_struct *mp, addr_t max_size, int randomflg)
    mp->maxsz = max_size;
    memset(mp->storage, 0, max_size * sizeof(BYTE));
 
-   MEMPHY_format(mp, PAGING_PAGESZ);
+   MEMPHY_format(mp, PAGING64_PAGESZ);
 
    mp->rdmflg = (randomflg != 0) ? 1 : 0;
 
    if (!mp->rdmflg) /* Not Ramdom acess device, then it serial device*/
       mp->cursor = 0;
-
    return 0;
 }
 

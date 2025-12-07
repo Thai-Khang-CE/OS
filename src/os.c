@@ -30,13 +30,26 @@ struct mmpaging_ld_args {
 };
 #endif
 
-static struct ld_args{
-	char ** path;
+//// consider as waitting list that contain all the processes which
+ // were declared in input file but chua duoc nap vao he thong chay
+//
+static struct ld_args{     
+	
+	char ** path; // no luu danh sach duong dan toi cac file mo ta process 
+	// vi du path[0] : input/proc/p0s
+	// path[1]: "input/proc/s3"
 	unsigned long * start_time;
+	// 1 mang luu arrival time cua tung process coresponding to path
+/* note cach dung:
+  Cách dùng: Luồng ld_routine sẽ liên tục so sánh thời gian hiện tại (current_time()) 
+  với giá trị trong mảng này. Khi thời gian hiện tại >= start_time[i], 
+  nó sẽ nạp process i vào hệ thống.
+*/
 #ifdef MLQ_SCHED
-	unsigned long * prio;
+	unsigned long * prio; // 1 mang luu priority cua tung process
 #endif
 } ld_processes;
+
 int num_processes;
 
 struct cpu_args {
@@ -143,16 +156,23 @@ static void * ld_routine(void * args) {
 	pthread_exit(NULL);
 }
 
+
+// understanding
+// state : complete
 static void read_config(const char * path) {
 	FILE * file;
 	if ((file = fopen(path, "r")) == NULL) {
 		printf("Cannot find configure file at %s\n", path);
 		exit(1);
 	}
+	// determine thoi gian time slot, so luong CPU , so luong process
 	fscanf(file, "%d %d %d\n", &time_slot, &num_cpus, &num_processes);
+	// tao ra 1 mang 2 chieu chua duong dan cua process
 	ld_processes.path = (char**)malloc(sizeof(char*) * num_processes);
-	ld_processes.start_time = (unsigned long*)
-		malloc(sizeof(unsigned long) * num_processes);
+    // tao ra  1 mang chua arrrival time cua tung process
+	ld_processes.start_time = (unsigned long*) 
+	malloc(sizeof(unsigned long) * num_processes);
+
 #ifdef MM_PAGING
 	int sit;
 #ifdef MM_FIXED_MEMSZ
@@ -173,13 +193,12 @@ static void read_config(const char * path) {
 	fscanf(file, "%d\n", &memramsz);
 	for(sit = 0; sit < PAGING_MAX_MMSWP; sit++)
 		fscanf(file, "%d", &(memswpsz[sit])); 
-
        fscanf(file, "\n"); /* Final character */
 #endif
 #endif
 
 #ifdef MLQ_SCHED
-	ld_processes.prio = (unsigned long*)
+	 ld_processes.prio = (unsigned long*)
 		malloc(sizeof(unsigned long) * num_processes);
 #endif
 	int i;
@@ -199,6 +218,7 @@ static void read_config(const char * path) {
 
 int main(int argc, char * argv[]) {
 	/* Read config */
+	// argc là số lượng tham số truyền vào 
 	if (argc != 2) {
 		printf("Usage: os [path to configure file]\n");
 		return 1;
@@ -209,9 +229,10 @@ int main(int argc, char * argv[]) {
 	strcat(path, argv[1]);
 	read_config(path);
 
+	// cpu thread, tao ra thread de chay da luong
 	pthread_t * cpu = (pthread_t*)malloc(num_cpus * sizeof(pthread_t));
-	struct cpu_args * args =
-		(struct cpu_args*)malloc(sizeof(struct cpu_args) * num_cpus);
+	// tao ra 1 struct de quan ly timer cua cpu
+	struct cpu_args * args =(struct cpu_args*)malloc(sizeof(struct cpu_args) * num_cpus);
 	pthread_t ld;
 	
 	/* Init timer */
@@ -228,9 +249,13 @@ int main(int argc, char * argv[]) {
 	int rdmflag = 1; /* By default memphy is RANDOM ACCESS MEMORY */
 
 	struct memphy_struct mram;
+	// mswp dong vai tro la 1 o cung 
 	struct memphy_struct mswp[PAGING_MAX_MMSWP];
 
+
+
 	/* Create MEM RAM */
+	// khoi tao physical memory
 	init_memphy(&mram, memramsz, rdmflag);
 
         /* Create all MEM SWAP */ 
@@ -245,7 +270,7 @@ int main(int argc, char * argv[]) {
 	mm_ld_args->mram = (struct memphy_struct *) &mram;
 	mm_ld_args->mswp = (struct memphy_struct**) &mswp;
 	mm_ld_args->active_mswp = (struct memphy_struct *) &mswp[0];
-        mm_ld_args->active_mswp_id = 0;
+    mm_ld_args->active_mswp_id = 0;
 #endif
 
 	/* Init scheduler */
@@ -258,8 +283,7 @@ int main(int argc, char * argv[]) {
 	pthread_create(&ld, NULL, ld_routine, (void*)ld_event);
 #endif
 	for (i = 0; i < num_cpus; i++) {
-		pthread_create(&cpu[i], NULL,
-			cpu_routine, (void*)&args[i]);
+		pthread_create(&cpu[i], NULL,cpu_routine, (void*)&args[i]);
 	}
 
 	/* Wait for CPU and loader finishing */
@@ -267,7 +291,6 @@ int main(int argc, char * argv[]) {
 		pthread_join(cpu[i], NULL);
 	}
 	pthread_join(ld, NULL);
-
 	/* Stop timer */
 	stop_timer();
 
