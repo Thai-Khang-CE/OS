@@ -21,11 +21,21 @@ static int memswpsz[PAGING_MAX_MMSWP];
 
 struct mmpaging_ld_args {
 	/* A dispatched argument struct to compact many-fields passing to loader */
+
+	// kích thước không gian bộ nhớ ảo
 	int vmemsz;
+
+	// con tro trỏ tới physical address
 	struct memphy_struct *mram;
+ 
+	// danh sach cac thiet bị Swap(ổ cứng)
 	struct memphy_struct **mswp;
+
+
 	struct memphy_struct *active_mswp;
+
 	int active_mswp_id;
+
 	struct timer_id_t  *timer_id;
 };
 #endif
@@ -126,7 +136,9 @@ static void * ld_routine(void * args) {
 	int i = 0;
 	printf("ld_routine\n");
 	while (i < num_processes) {
+		// line code nay dung de load instruction cua process 
 		struct pcb_t * proc = load(ld_processes.path[i]);
+
 		struct krnl_t * krnl = proc->krnl = &os;	
 
 #ifdef MLQ_SCHED

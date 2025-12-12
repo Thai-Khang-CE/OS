@@ -37,8 +37,13 @@ struct pcb_t * load(const char * path) {
 	struct pcb_t * proc = (struct pcb_t * )malloc(sizeof(struct pcb_t));
 	proc->pid = avail_pid;
 	avail_pid++;
-	proc->page_table =
-		(struct page_table_t*)malloc(sizeof(struct page_table_t));
+	#ifndef MM_PAGING
+    proc->page_table =
+        (struct page_table_t*)malloc(sizeof(struct page_table_t));
+    proc->page_table->size = 0; // Nên khởi tạo size = 0 cho an toàn
+#else
+    proc->page_table = NULL; // Nếu dùng Paging thì cho trỏ về NULL
+#endif
 	proc->bp = PAGE_SIZE;
 	proc->pc = 0;
 
@@ -52,6 +57,7 @@ struct pcb_t * load(const char * path) {
 	char opcode[10];
 	proc->code = (struct code_seg_t*)malloc(sizeof(struct code_seg_t));
 	fscanf(file, "%u %u", &proc->priority, &proc->code->size);
+	
 	proc->code->text = (struct inst_t*)malloc(
 		sizeof(struct inst_t) * proc->code->size
 	);

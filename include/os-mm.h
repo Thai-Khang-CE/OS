@@ -104,6 +104,8 @@ struct mm_struct {
 /*
  * FRAME/MEM PHY struct
  */
+
+ // frame physical
 struct framephy_struct { 
    addr_t fpn;
    struct framephy_struct *fp_next;

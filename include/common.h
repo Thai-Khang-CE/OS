@@ -61,9 +61,10 @@ enum ins_opcode_t
 struct inst_t
 {
 	enum ins_opcode_t opcode;
-	arg_t arg_0; // Argument lists for instructions
-	arg_t arg_1;
-	arg_t arg_2;
+	// Argument lists for instructions
+	arg_t arg_0; // tuong trung cho du lieu
+	arg_t arg_1; // thanh ghi nguon dia chi
+	arg_t arg_2; // offset
 	arg_t arg_3;
 };
 
@@ -93,23 +94,27 @@ struct page_table_t
 		addr_t v_index; // Virtual index
 		struct trans_table_t *next_lv;
 	} table[1 << FIRST_LV_LEN];
+
 	int size; // Number of row in the first layer
 };
 
 /* PCB, describe information about a process */
 struct pcb_t
 {
-	uint32_t pid;		 // PID
+	uint32_t pid; // PID
 	uint32_t priority;	 // Default priority, this legacy process based (FIXED)
+	 // duong dan den file ma nguon vi du: "input/proc/p0s"
 	char path[100];
+	// con tro tro den doan ma lenh (calc,alloc,write)
 	struct code_seg_t *code; // Code segment
+
 	addr_t regs[10];	 // Registers, store address of allocated regions
-	uint32_t pc;	
+	uint32_t pc;	// program counter
 	#ifdef MM_PAGING
     struct mm_struct *mm; // <--- BẠN CẦN THÊM DÒNG NÀY
     struct memphy_struct *mram;
     struct memphy_struct **mswp;
-    struct memphy_struct *active_mswp;
+    struct memphy_struct *active_mswp; // truy suat toi swap dang thuc thi
 #endif	 // Program pointer, point to the next instruction
 #ifdef MLQ_SCHED
 	// Priority on execution (if supported), on-fly aka. changeable
@@ -117,6 +122,7 @@ struct pcb_t
 	uint32_t prio;
 #endif
 	struct krnl_t *krnl;	
+	// virtual page number -> phisycal frame number
 	struct page_table_t *page_table; // Page table
 	uint32_t bp;			 // Break pointer
 };

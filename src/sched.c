@@ -49,6 +49,8 @@ void init_scheduler(void) {
 	ready_queue.size = 0;
 	run_queue.size = 0;
 	running_list.size = 0;
+	// de dam bao rang khi hang doi dang duoc sua doi, thi nguoi khac
+	// khong duoc can thiep
 	pthread_mutex_init(&queue_lock, NULL);
 }
 
@@ -83,6 +85,7 @@ struct pcb_t * get_mlq_proc(void) {
     }
 	if (proc != NULL)
 		enqueue(&running_list, proc);
+		
 	pthread_mutex_unlock(&queue_lock);
 	return proc;	
 }

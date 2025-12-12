@@ -220,7 +220,7 @@ int init_memphy(struct memphy_struct *mp, addr_t max_size, int randomflg)
    mp->maxsz = max_size;
    memset(mp->storage, 0, max_size * sizeof(BYTE));
 
-   MEMPHY_format(mp, PAGING64_PAGESZ);
+   MEMPHY_format(mp, PAGING_PAGESZ);
 
    mp->rdmflg = (randomflg != 0) ? 1 : 0;
 
